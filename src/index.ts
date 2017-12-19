@@ -26,7 +26,7 @@ class Panel {
         this.selectionFrameStart = null;
         this.cubesMatrix = [[]] as Rect[][];
 
-        this.drawPanel(this.bgCtx);
+        this.drawCubes(this.bgCtx);
         this.drawBackground(this.ctx);
         this.initEventHandlers();
     }
@@ -88,7 +88,7 @@ class Panel {
         ctx.drawImage(this.bgCanvas, 0, 0, this.bgCanvas.width, this.bgCanvas.height);
     }
 
-    public drawPanel(ctx: CanvasRenderingContext2D) {
+    public drawCubes(ctx: CanvasRenderingContext2D) {
         const line = new Line(ctx, {
             offset: 0.5,
             lineWidth: 1,
