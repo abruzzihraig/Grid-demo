@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "target": "ES5",
+        "noImplicitAny": true,
+        "jsx": "react",
+        "experimentalDecorators": true,
+        "lib": ["DOM", "ES2017", "ES2017.object"],
+        "pretty": true,
+        "skipLibCheck": true,
+        "noUnusedParameters": false,
+        "noUnusedLocals": false,
+        "no-duplicate-variable": false
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}
