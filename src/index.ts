@@ -6,6 +6,7 @@ import { MATRIX, CANVAS } from './Constant';
 
 const gap = MATRIX.GAP;
 const length = MATRIX.CUBE.SIZE;
+const lineWidth = 1;
 
 class Panel {
     public canvas: HTMLCanvasElement;
@@ -15,6 +16,7 @@ class Panel {
     private isDrawing: boolean;
     private selectionFrameStart: Point;
     private cubesMatrix: Rect[][];
+    private coverings: Rect[];
 
     constructor() {
         this.canvas = document.querySelector('canvas');
@@ -29,6 +31,7 @@ class Panel {
         this.isDrawing = false;
         this.selectionFrameStart = null;
         this.cubesMatrix = [[]] as Rect[][];
+        this.coverings = [] as Rect[];
 
         this.drawCubes(this.bgCtx);
         this.drawBackground(this.ctx);
@@ -53,7 +56,11 @@ class Panel {
         });
 
         this.canvas.addEventListener('mouseup', (evt: MouseEvent) => {
+            const { offsetX: x, offsetY: y } = evt;
+            const endPoint = new Point(x, y);
+
             this.reset(this.ctx);
+            this.drawCovering(this.ctx, this.selectionFrameStart, endPoint);
             this.isDrawing = false;
         });
     }
@@ -73,7 +80,6 @@ class Panel {
 
     public drawSelection(ctx: CanvasRenderingContext2D, start: Point, end: Point) {
         const rectSelection = new Rect({ start, end });
-
         const { startIndex, endIndex } = this.calcMatrixIndexes(rectSelection);
 
         for (let i = startIndex[1], iLength = endIndex[1]; i <= iLength; i++) {
@@ -82,6 +88,30 @@ class Panel {
                 curRect.fillRect(this.ctx);
             }
         }
+    }
+
+    public drawCovering(ctx: CanvasRenderingContext2D, start: Point, end: Point) {
+        const rectSelection = new Rect({ start, end });
+        if (this.isCoveringConflict(rectSelection)) return;
+
+        const { startIndex, endIndex } = this.calcMatrixIndexes(rectSelection);
+
+        const coveringStart = new Point(startIndex[0] * (length + gap), startIndex[1] * (length + gap));
+        const coveringEnd = new Point(endIndex[0] * (length + gap) + length + lineWidth, endIndex[1] * (length + gap) + length + lineWidth);
+
+        const covering = new Rect({ start: coveringStart, end: coveringEnd });
+        this.coverings.push(covering);
+        covering.fillRect(this.ctx, 'yellow', 1);
+    }
+
+    public drawCoverings(ctx: CanvasRenderingContext2D) {
+        this.coverings.forEach(covering => {
+            covering.fillRect(ctx, 'yellow', 1);
+        });
+    }
+
+    public isCoveringConflict(rect: Rect) {
+        return this.coverings.some(covering => covering.isRectCrossed(rect));
     }
 
     public isPointXAxisInGutter(point: Point) {
@@ -150,6 +180,7 @@ class Panel {
     public reset(ctx: CanvasRenderingContext2D) {
         this.clear(ctx);
         this.drawBackground(ctx);
+        this.drawCoverings(ctx);
     }
 }
 

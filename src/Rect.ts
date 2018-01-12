@@ -68,9 +68,9 @@ export default class Rect {
         ctx.stroke();
     }
 
-    public fillRect(ctx: CanvasRenderingContext2D) {
-        ctx.globalAlpha = 0.5;
-        ctx.fillStyle = 'red';
+    public fillRect(ctx: CanvasRenderingContext2D, color = 'red', opacity = 0.5) {
+        ctx.globalAlpha = opacity;
+        ctx.fillStyle = color;
         ctx.fillRect(this.LT.x, this.LT.y, this.width, this.height);
     }
 }
