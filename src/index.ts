@@ -2,6 +2,10 @@ import { domReady } from './utils';
 import Point from './Point';
 import Line from './Line';
 import Rect from './Rect';
+import { MATRIX, CANVAS } from './Constant';
+
+const gap = MATRIX.GAP;
+const length = MATRIX.CUBE.SIZE;
 
 class Panel {
     public canvas: HTMLCanvasElement;
@@ -17,10 +21,10 @@ class Panel {
         this.ctx = this.canvas.getContext('2d');
         this.bgCanvas = document.createElement('canvas');
         this.bgCtx = this.bgCanvas.getContext('2d');
-        this.canvas.width = 801;
-        this.canvas.height = 801;
-        this.bgCanvas.width = 801;
-        this.bgCanvas.height = 801;
+        this.canvas.width = CANVAS.WIDTH;
+        this.canvas.height = CANVAS.HEIGHT;
+        this.bgCanvas.width = CANVAS.WIDTH;
+        this.bgCanvas.height = CANVAS.HEIGHT;
 
         this.isDrawing = false;
         this.selectionFrameStart = null;
@@ -70,18 +74,42 @@ class Panel {
     public drawSelection(ctx: CanvasRenderingContext2D, start: Point, end: Point) {
         const rectSelection = new Rect({ start, end });
 
-        for (let i = 0, iLeng = this.cubesMatrix.length; i < iLeng; i++) {
-            for (let j = 0, jLeng = this.cubesMatrix[i].length; j < jLeng; j++) {
-                const curRect = this.cubesMatrix[i][j];
+        const { startIndex, endIndex } = this.calcMatrixIndexes(rectSelection);
 
-                if (rectSelection.isRectCrossed(curRect)) {
-                    curRect.activate();
-                    curRect.fillRect(this.ctx);
-                } else {
-                    curRect.deactivate();
-                }
+        for (let i = startIndex[1], iLength = endIndex[1]; i <= iLength; i++) {
+            for (let j = startIndex[0], jLength = endIndex[0]; j <= jLength; j++) {
+                const curRect = this.cubesMatrix[i][j];
+                curRect.fillRect(this.ctx);
             }
         }
+    }
+
+    public isPointXAxisInGutter(point: Point) {
+        return point.x % (length + gap) > length;
+    }
+
+    public isPointYAxisInGutter(point: Point) {
+        return point.y % (length + gap) > length;
+    }
+
+    public calcMatrixIndex(point: Point, isLT = true) {
+        const { x, y } = point;
+        const index = [Math.floor(x / (length + gap)), Math.floor(y / (length + gap))];
+
+        if (this.isPointXAxisInGutter(point) && isLT) index[0]++;
+        if (this.isPointYAxisInGutter(point) && isLT) index[1]++;
+
+        return index;
+    }
+
+    public calcMatrixIndexes(rect: Rect) {
+        const LT = new Point(rect.left, rect.top);
+        const RB = new Point(rect.right, rect.bottom);
+
+        const startIndex = this.calcMatrixIndex(LT);
+        const endIndex = this.calcMatrixIndex(RB, false);
+
+        return { startIndex, endIndex };
     }
 
     public drawBackground(ctx: CanvasRenderingContext2D) {
@@ -100,8 +128,6 @@ class Panel {
 
         for (let i = 0; i < 200; i++) {
             for (let j = 0; j < 200; j++) {
-                const length = 10;
-                const gap = 5;
                 const start = new Point(j * (length + gap), i * (length + gap));
                 const end = new Point(j * (length + gap) + length, i * (length + gap) + length);
                 const rect = new Rect({ start, end });
